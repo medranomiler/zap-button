@@ -33,8 +33,8 @@ export default function Home() {
     >
       <div className="flex flex-col items-center w-full justify-center">
       <div className="flex flex-col items-center w-full justify-center mb-4">
-      <img src={profile.picture} height="100" width="100" className="rounded-full mb-4"/>
-      <p>{profile.displayName? profile.displayName : profile.display_name}</p>
+      <img src={profile.picture} className="rounded-full mb-4 object-cover w-[160px] h-[160px]"/>
+      <p className="font-bold text-2xl">{profile.displayName? profile.displayName : profile.display_name}</p>
       <p className="w-[300px] truncate">{npub}</p>
       </div>
         <Script src="https://cdn.jsdelivr.net/npm/nostr-zap-fork@0.21.4"></Script>
