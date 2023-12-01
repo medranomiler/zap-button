@@ -3,7 +3,7 @@ import { convertToHex } from "./nostr-tools"
 
 export const getUser = async (npub) => {
   try {
-    const relay = relayInit('wss://relay.damus.io');
+    const relay = relayInit('wss://relay.primal.net');
 
     relay.on('connect', () => {
       console.log(`connected to ${relay.url}`);
