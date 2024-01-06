@@ -4,8 +4,8 @@ import Script from 'next/script'
 import { BsLightning } from 'react-icons/bs';
 import { useEffect, useState } from "react"
 import { useRouter } from 'next/router'
-
-import { getUser } from "../../../utils/getKind0"
+import { convertToHex } from '@/utils/nostr-tools';
+import { SimplePool } from 'nostr-tools';
 
 
 const inter = Inter({ subsets: ['latin'] })
@@ -13,18 +13,49 @@ const inter = Inter({ subsets: ['latin'] })
 export default function Home() {
   const router = useRouter();
   const { npub = "" } = router.query;
-  const [ loading, setLoading ] = useState(true)
   const [ profile, setProfile ] = useState({})
+  const relays = [
+    'wss://relay.damus.io',
+    'wss://relay.primal.net',
+    'wss://relay.snort.social',
+    'wss://relay.current.fyi',
+    'wss://relay.nostr.band',
+    'wss://offchain.pub'
+  ];
 
-  useEffect(() => {          
-    const setUser = async (npub) =>{
-      const userProfile = await getUser(npub)
-      setProfile(userProfile)
-    }
 
-    setUser(npub)
-    setLoading(false)
+  useEffect(() => {
+    const fetchKind0 = async () => {
+      const pool = new SimplePool();
+      let sub = pool.sub(relays, [
+        {
+          kinds: [0],
+          authors: [convertToHex(npub)],
+        },
+      ]);
+
+      sub.on("event", (event) => {
+        if (event.kind !== 0) {
+          return;
+        }
+        if (!event.content) {
+          console.error("!event.content")
+        } else {
+          const parsedContent = JSON.parse(event.content);
+          event.content = parsedContent;
+          setProfile(event.content)
+        }
+      });
+
+      sub.on("eose", () => {
+        console.log("no more events");
+        sub.unsub();
+      });
+    };
+
+    fetchKind0();
   }, [npub]);
+
 
 
   return (
@@ -44,7 +75,7 @@ export default function Home() {
       <p className="w-[300px] truncate">{npub}</p>
       </div>
         <Script src="https://cdn.jsdelivr.net/npm/nostr-zap-fork@0.21.4"></Script>
-          <div id="zap-button" data-npub={npub} data-relays="wss://relay.damus.io,wss://relay.snort.social,wss://nostr.wine,wss://relay.nostr.band" className="bg-black cursor-pointer border border-[#FADA5E] p-2 text-sm hover:bg-[#FADA5E] hover:text-black flex items-center w-16">Zap
+          <div id="zap-button" data-npub={npub} data-relays="wss://relay.damus.io,wss://relay.snort.social,wss://nostr.wine,wss://relay.nostr.band, wss://relay.primal.net" className="bg-black cursor-pointer border border-[#FADA5E] p-2 text-sm hover:bg-[#FADA5E] hover:text-black flex items-center w-16">Zap
           <BsLightning className="font-light ml-2 h-4 w-auto" />
           </div>
       </div>
